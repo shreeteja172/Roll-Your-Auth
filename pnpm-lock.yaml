@@ -225,6 +225,13 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+    devDependencies:
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.20.2)(typescript@7.0.2)
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
 packages:
 
