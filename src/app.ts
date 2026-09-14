@@ -5,10 +5,12 @@ globalThis.Temporal = Temporal as unknown as typeof globalThis.Temporal;
 import express from "express";
 import registerRouter from "./routes/auth/register";
 import loginRouter from "./routes/auth/login";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/auth", registerRouter);
 app.use("/auth", loginRouter);
