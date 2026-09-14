@@ -6,6 +6,7 @@ import {
   hashSessionToken,
   getSessionExpiry,
 } from "../../auth/session";
+import { requireAuth } from "../../auth/requireAuth";
 
 const router: Router = Router();
 
@@ -42,7 +43,7 @@ router.post("/login", async (req, res) => {
     // cryptographically secure session token forr the user
     const sessionToken = generateSessionToken();
 
-    // store only the hash in the db 
+    // store only the hash in the db
     const tokenHash = hashSessionToken(sessionToken);
 
     // session expires in 7 days
@@ -79,3 +80,22 @@ router.post("/login", async (req, res) => {
 });
 
 export default router;
+
+router.get("/test-auth", requireAuth, (req, res) => {
+  const authenticatedRequest = req as typeof req & {
+    user: {
+      id: string;
+      email: string;
+    };
+    session: {
+      id: string;
+      userId: string;
+      expiresAt: unknown;
+    };
+  };
+
+  return res.status(200).json({
+    message: "Authentication works!",
+    user: authenticatedRequest.user,
+  });
+});
