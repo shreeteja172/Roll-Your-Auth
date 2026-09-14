@@ -77,7 +77,7 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               }
@@ -174,7 +174,7 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               }
@@ -254,6 +254,13 @@
                   "kind": "scalar"
                 }
               },
+              "tokenHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "userAgent": {
                 "nullable": true,
                 "type": {
@@ -264,7 +271,7 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               }
@@ -300,6 +307,9 @@
                 "ipAddress": {
                   "column": "ipAddress"
                 },
+                "tokenHash": {
+                  "column": "tokenHash"
+                },
                 "userAgent": {
                   "column": "userAgent"
                 },
@@ -330,7 +340,7 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -454,8 +464,8 @@
                   "nullable": false
                 },
                 "userId": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 }
               },
@@ -551,8 +561,8 @@
                   }
                 },
                 "userId": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 }
               },
@@ -577,10 +587,27 @@
               "indexes": [
                 {
                   "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "otp_expiresAt_idx_6b6b8c10",
+                  "prefix": "otp_expiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "userId"
                   ],
                   "name": "otp_userId_idx_a489d58a",
                   "prefix": "otp_userId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId",
+                    "purpose"
+                  ],
+                  "name": "otp_userId_purpose_idx_e49c32f0",
+                  "prefix": "otp_userId_purpose_idx",
                   "unique": false
                 }
               ],
@@ -617,14 +644,19 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "tokenHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "userAgent": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
                 },
                 "userId": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 }
               },
@@ -649,6 +681,14 @@
               "indexes": [
                 {
                   "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "session_expiresAt_idx_6b6b8c10",
+                  "prefix": "session_expiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "userId"
                   ],
                   "name": "session_userId_idx_a489d58a",
@@ -661,7 +701,13 @@
                   "id"
                 ]
               },
-              "uniques": []
+              "uniques": [
+                {
+                  "columns": [
+                    "tokenHash"
+                  ]
+                }
+              ]
             },
             "user": {
               "columns": {
@@ -680,12 +726,8 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/int4@1",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
-                  "nativeType": "int4",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 },
                 "passwordHash": {
@@ -730,15 +772,15 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "81ef61177b2e68a48b6e95f075d0e7d90df06306a7010627960370559faa2c9d"
+    "storageHash": "f9013dd50a4519c8117975c11865b7d31618552fa044fd0cd672d3b606b6b897"
   },
   "execution": {
-    "executionHash": "52072baa06b6cf93320dd2818a759d4b7daf85bca50ff5e2b6af652ed2ee1e58",
+    "executionHash": "39ea6408a853337f92d79536563854cf358dc40da1e05b683cda7f821e0e681d",
     "mutations": {
       "defaults": [
         {
           "onCreate": {
-            "id": "cuid2",
+            "id": "uuidv4",
             "kind": "generator"
           },
           "ref": {
@@ -749,7 +791,7 @@
         },
         {
           "onCreate": {
-            "id": "cuid2",
+            "id": "uuidv4",
             "kind": "generator"
           },
           "ref": {
@@ -760,13 +802,24 @@
         },
         {
           "onCreate": {
-            "id": "cuid2",
+            "id": "uuidv4",
             "kind": "generator"
           },
           "ref": {
             "column": "id",
             "namespace": "public",
             "table": "session"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "user"
           }
         },
         {

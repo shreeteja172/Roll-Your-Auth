@@ -1,11 +1,12 @@
 // use prisma-next
 
 model User {
-  id            Int               @id @default(autoincrement())
-  email         String            @unique
+  id            String          @id @default(uuid())
+  email         String          @unique
   passwordHash  String?
+
   createdAt     TimestamptzString @default(now())
-  updatedAt temporal.updatedAt()
+  updatedAt     temporal.updatedAt()
 
   sessions      Session[]
   otps          Otp[]
@@ -13,13 +14,21 @@ model User {
 }
 
 model Session {
-  id        String            @id @default(cuid(2))
-  userId    Int
-  user      User              @relation(fields:[userId], references:[id])
-  expiresAt TimestamptzString
-  ipAddress String?
-  userAgent String?
-  createdAt TimestamptzString @default(now())
+  id         String            @id @default(uuid())
+
+  userId     String
+  user       User              @relation(fields: [userId], references: [id])
+
+  tokenHash  String            @unique
+  expiresAt  TimestamptzString
+
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt  TimestamptzString @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 enum OtpPurpose {
@@ -29,23 +38,35 @@ enum OtpPurpose {
 }
 
 model Otp {
-  id         String             @id @default(cuid(2))
-  userId     Int
-  user       User               @relation(fields:[userId], references:[id])
+  id         String            @id @default(uuid())
+
+  userId     String
+  user       User              @relation(fields: [userId], references: [id])
+
   codeHash   String
   purpose    OtpPurpose
+
   expiresAt  TimestamptzString
   consumedAt TimestamptzString?
-  createdAt  TimestamptzString  @default(now())
+
+  createdAt  TimestamptzString @default(now())
+
+  @@index([userId])
+  @@index([userId, purpose])
+  @@index([expiresAt])
 }
 
 model OAuthAccount {
-  id                String            @id @default(cuid(2))
-  userId            Int
-  user              User              @relation(fields:[userId], references:[id])
+  id                String            @id @default(uuid())
+
+  userId            String
+  user              User              @relation(fields: [userId], references: [id])
+
   provider          String
   providerAccountId String
+
   createdAt         TimestamptzString @default(now())
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
