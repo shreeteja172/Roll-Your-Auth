@@ -1,12 +1,18 @@
+import { Temporal } from "@js-temporal/polyfill";
+
+globalThis.Temporal = Temporal as unknown as typeof globalThis.Temporal;
+
 import express from "express";
+import registerRouter from "./routes/auth/register";
+import loginRouter from "./routes/auth/login";
 
 const app = express();
-const port = 3000;
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+app.use(express.json());
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+app.use("/auth", registerRouter);
+app.use("/auth", loginRouter);
+
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
