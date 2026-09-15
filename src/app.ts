@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import meRouter from "./routes/auth/me";
 import logoutRouter from "./routes/auth/logout";
 import logoutAllRouter from "./routes/auth/logout-all";
+import sessionsRouter from "./routes/sessions";
 
 const app = express();
 
@@ -20,6 +21,8 @@ app.use("/auth", loginRouter);
 app.use("/auth", meRouter);
 app.use("/auth", logoutRouter);
 app.use("/auth", logoutAllRouter);
+app.use("/auth", sessionsRouter);
+
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");

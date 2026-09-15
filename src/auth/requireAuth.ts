@@ -54,12 +54,12 @@ export async function requireAuth(
       email: user.email,
     };
 
-    // req.session = {
-    //   id: String(session.id),
-    //   userId: String(session.userId),
-    //   tokenHash: String(session.tokenHash),
-    //   expiresAt: session.expiresAt as string | Date,
-    // };
+    req.session = {
+      id: String(session.id),
+      userId: String(session.userId),
+      tokenHash: String(session.tokenHash),
+      expiresAt: session.expiresAt as string | Date,
+    };
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
