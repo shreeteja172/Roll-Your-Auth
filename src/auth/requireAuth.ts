@@ -34,6 +34,14 @@ export async function requireAuth(
       });
     }
 
+    await db.orm
+      .public!.Session!.where({
+        id: session.id,
+      })
+      .update({
+        lastUsedAt: new Date(),
+      });
+
     const user = await db.orm
       .public!.User!.where({ id: session.userId })
       .first();

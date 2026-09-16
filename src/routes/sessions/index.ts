@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../../auth/requireAuth";
 import { db } from "../../prisma/db";
+import { hashSessionToken } from "../../auth/session";
 
 const router: Router = Router();
 
@@ -35,26 +36,20 @@ router.delete("/sessions/:id", requireAuth, async (req, res) => {
     message: "Session revoked successfully",
   });
 });
-router.delete("/sessions/:id", requireAuth, async (req, res) => {
-  const userId = req.user!.id;
-  const sessionId = req.params.id;
 
-  const deleted = await db.orm
+router.delete("/sessions/others", requireAuth, async (req, res) => {
+  const userId = req.user!.id;
+  const currentToken = req.cookies.session;
+
+  const currentTokenHash = hashSessionToken(currentToken);
+  if (!currentTokenHash) {
+    return res.status(400).json({ message: "Invalid session token" });
+  }
+  await db.orm
     .public!.Session!.where({
-      id: sessionId,
       userId,
     })
-    .delete();
-
-  if (!deleted) {
-    return res.status(404).json({
-      message: "Session not found",
-    });
-  }
-
-  return res.json({
-    message: "Session revoked successfully",
-  });
+    .all();
 });
 
 export default router;

@@ -14,18 +14,17 @@ model User {
 }
 
 model Session {
-  id         String            @id @default(uuid())
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
 
-  userId     String
-  user       User              @relation(fields: [userId], references: [id])
+  ipAddress   String?
+  userAgent   String?
+  lastUsedAt  DateTime?
 
-  tokenHash  String            @unique
-  expiresAt  TimestamptzString
-
-  ipAddress  String?
-  userAgent  String?
-
-  createdAt  TimestamptzString @default(now())
 
   @@index([userId])
   @@index([expiresAt])

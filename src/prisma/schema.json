@@ -229,14 +229,14 @@
               "createdAt": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/timestamptz-temporal@1",
                   "kind": "scalar"
                 }
               },
               "expiresAt": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/timestamptz-temporal@1",
                   "kind": "scalar"
                 }
               },
@@ -251,6 +251,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastUsedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
                   "kind": "scalar"
                 }
               },
@@ -306,6 +313,9 @@
                 },
                 "ipAddress": {
                   "column": "ipAddress"
+                },
+                "lastUsedAt": {
+                  "column": "lastUsedAt"
                 },
                 "tokenHash": {
                   "column": "tokenHash"
@@ -621,7 +631,7 @@
             "session": {
               "columns": {
                 "createdAt": {
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/timestamptz-temporal@1",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
@@ -630,7 +640,7 @@
                   "nullable": false
                 },
                 "expiresAt": {
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/timestamptz-temporal@1",
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
@@ -642,6 +652,11 @@
                 "ipAddress": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
+                  "nullable": true
+                },
+                "lastUsedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
                   "nullable": true
                 },
                 "tokenHash": {
@@ -772,7 +787,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "f9013dd50a4519c8117975c11865b7d31618552fa044fd0cd672d3b606b6b897"
+    "storageHash": "01adcb373cd387daa9ca2b3495929bbaad6e93c1fe32b619fa18db6ba587a7e2"
   },
   "execution": {
     "executionHash": "39ea6408a853337f92d79536563854cf358dc40da1e05b683cda7f821e0e681d",

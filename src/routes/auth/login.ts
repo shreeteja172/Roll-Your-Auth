@@ -49,10 +49,15 @@ router.post("/login", async (req, res) => {
     // session expires in 7 days
     const expiresAt = getSessionExpiry();
 
-    await publicDb.Session.create({
-      userId: user.id,
-      tokenHash,
-      expiresAt,
+    const session = await db.orm.public!.Session!.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+        lastUsedAt: new Date(),
+      },
     });
 
     res.cookie("session", sessionToken, {
