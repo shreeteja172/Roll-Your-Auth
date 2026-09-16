@@ -16,6 +16,7 @@ router.get("/sessions", requireAuth, async (req, res) => {
       ipAddress: session.ipAddress,
       userAgent: session.userAgent,
       createdAt: session.createdAt,
+      lastUsedAt: session.lastUsedAt,
       expiresAt: session.expiresAt,
     })),
   });
@@ -40,16 +41,33 @@ router.delete("/sessions/:id", requireAuth, async (req, res) => {
 router.delete("/sessions/others", requireAuth, async (req, res) => {
   const userId = req.user!.id;
   const currentToken = req.cookies.session;
-
   const currentTokenHash = hashSessionToken(currentToken);
+
   if (!currentTokenHash) {
-    return res.status(400).json({ message: "Invalid session token" });
+    return res.status(400).json({
+      message: "Invalid session token",
+    });
   }
-  await db.orm
+
+  const sessions = await db.orm
     .public!.Session!.where({
       userId,
     })
     .all();
+
+  for (const session of sessions) {
+    if (session.tokenHash !== currentTokenHash) {
+      await db.orm
+        .public!.Session!.where({
+          id: session.id,
+        })
+        .delete();
+    }
+  }
+
+  return res.json({
+    message: "Other sessions revoked successfully",
+  });
 });
 
 export default router;

@@ -10,6 +10,7 @@ import meRouter from "./routes/auth/me";
 import logoutRouter from "./routes/auth/logout";
 import logoutAllRouter from "./routes/auth/logout-all";
 import sessionsRouter from "./routes/sessions";
+import { cleanupExpiredSessions } from "./auth/cleanupSessions";
 
 const app = express();
 
@@ -23,7 +24,23 @@ app.use("/auth", logoutRouter);
 app.use("/auth", logoutAllRouter);
 app.use("/auth", sessionsRouter);
 
-
-app.listen(3000, () => {
+app.listen(3000, async () => {
   console.log("Server running on port 3000");
+
+  try {
+    await cleanupExpiredSessions();
+  } catch (error) {
+    console.error("Initial session cleanup failed:", error);
+  }
 });
+
+setInterval(
+  async () => {
+    try {
+      await cleanupExpiredSessions();
+    } catch (error) {
+      console.error("Session cleanup failed:", error);
+    }
+  },
+  60 * 60 * 1000,
+);
