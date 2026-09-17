@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "../../prisma/db";
 import { hashPassword } from "../../auth/password";
 import { generateOtp, hashOtp } from "../../utils/otp";
+import { sendVerificationEmail } from "../../email/sendVerificationEmail";
 
 const router: Router = Router();
 
@@ -51,8 +52,11 @@ router.post("/register", async (req, res) => {
       expiresAt,
     });
 
-    console.log("EMAIL VERIFICATION OTP:", otp);
+    // console.log("EMAIL VERIFICATION OTP:", otp);
 
+    await sendVerificationEmail(email, otp);
+
+    
     return res.status(201).json({
       message: "User registered successfully",
       user: {
