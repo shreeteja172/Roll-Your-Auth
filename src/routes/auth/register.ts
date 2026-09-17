@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../../prisma/db";
 import { hashPassword } from "../../auth/password";
+import { generateOtp, hashOtp } from "../../utils/otp";
 
 const router: Router = Router();
 
@@ -29,7 +30,7 @@ router.post("/register", async (req, res) => {
     }
 
     const passwordHash = await hashPassword(password);
-    
+
     // console.log("REGISTER PASSWORD:", password);
     // console.log("GENERATED HASH:", passwordHash);
 
@@ -37,6 +38,20 @@ router.post("/register", async (req, res) => {
       email,
       passwordHash,
     });
+
+    const otp = generateOtp();
+    const codeHash = await hashOtp(otp);
+
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await publicDb!.Otp!.create({
+      userId: user.id,
+      codeHash,
+      purpose: "EMAIL_VERIFY",
+      expiresAt,
+    });
+
+    console.log("EMAIL VERIFICATION OTP:", otp);
 
     return res.status(201).json({
       message: "User registered successfully",

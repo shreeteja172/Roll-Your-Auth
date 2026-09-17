@@ -11,6 +11,8 @@ import logoutRouter from "./routes/auth/logout";
 import logoutAllRouter from "./routes/auth/logout-all";
 import sessionsRouter from "./routes/sessions";
 import { cleanupExpiredSessions } from "./auth/cleanupSessions";
+import verifyEmailRouter from "./routes/auth/verify-email";
+
 
 const app = express();
 
@@ -23,6 +25,8 @@ app.use("/auth", meRouter);
 app.use("/auth", logoutRouter);
 app.use("/auth", logoutAllRouter);
 app.use("/auth", sessionsRouter);
+app.use("/auth", verifyEmailRouter);
+
 
 app.listen(3000, async () => {
   console.log("Server running on port 3000");
