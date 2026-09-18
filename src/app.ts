@@ -13,6 +13,8 @@ import sessionsRouter from "./routes/sessions";
 import { cleanupExpiredSessions } from "./auth/cleanupSessions";
 import verifyEmailRouter from "./routes/auth/verify-email";
 import resendVerificationRouter from "./routes/auth/resend-verification";
+import forgotPasswordRouter from "./routes/auth/forgot-password";
+import resetPasswordRouter from "./routes/auth/reset-password";
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use("/auth", logoutAllRouter);
 app.use("/auth", sessionsRouter);
 app.use("/auth", verifyEmailRouter);
 app.use("/auth", resendVerificationRouter);
+app.use("/auth", forgotPasswordRouter);
+app.use("/auth", resetPasswordRouter);
 
 app.listen(3000, async () => {
   console.log("Server running on port 3000");
