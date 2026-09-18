@@ -10,7 +10,7 @@ export async function requireAuth(
   try {
     const sessionToken = req.cookies?.session;
     // console.log("SESSION TOKEN:", sessionToken);
-    if (!sessionToken) {
+    if (!sessionToken || typeof sessionToken !== "string") {
       return res.status(401).json({
         message: "Not authenticated",
       });
@@ -29,34 +29,45 @@ export async function requireAuth(
     }
 
     if (new Date(session.expiresAt as string | number | Date) <= new Date()) {
+      await db.orm.public!.Session!.where({ id: session.id }).delete();
+
       return res.status(401).json({
         message: "Session expired",
       });
     }
-
-    await db.orm
-      .public!.Session!.where({
-        id: session.id,
-      })
-      .update({
-        lastUsedAt: new Date(),
-      });
 
     const user = await db.orm
       .public!.User!.where({ id: session.userId })
       .first();
 
     if (!user) {
+      await db.orm.public!.Session!.where({ id: session.id }).delete();
+
       return res.status(401).json({
-        message: "User not found",
+        message: "Authentication required",
       });
     }
+
     if (typeof user.id !== "string" || typeof user.email !== "string") {
       return res.status(500).json({
         message: "Invalid user data",
       });
     }
 
+    const now = new Date();
+
+    const lastUsedAt = session.lastUsedAt
+      ? new Date(session.lastUsedAt as string | number | Date)
+      : null;
+
+    const shouldUpdateLastUsed =
+      !lastUsedAt || now.getTime() - lastUsedAt.getTime() >= 5 * 60 * 1000;
+
+    if (shouldUpdateLastUsed) {
+      await db.orm.public!.Session!.where({ id: session.id }).update({
+        lastUsedAt: now,
+      });
+    }
     req.user = {
       id: user.id,
       email: user.email,

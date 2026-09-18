@@ -51,6 +51,8 @@ model Otp {
   expiresAt  TimestamptzString
   consumedAt TimestamptzString?
 
+  attempts   Int               @default(0)
+
   createdAt  TimestamptzString @default(now())
 
   @@index([userId])

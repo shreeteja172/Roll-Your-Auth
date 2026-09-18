@@ -2,24 +2,22 @@ import { Router } from "express";
 import { db } from "../../prisma/db";
 import { verifyOtp } from "../../utils/otp";
 import { hashPassword } from "../../auth/password";
+import { resetPasswordSchema } from "../../validation/auth";
 
 const router: Router = Router();
 
 router.post("/reset-password", async (req, res) => {
   try {
-    const { email, code, newPassword } = req.body;
+    const result = resetPasswordSchema.safeParse(req.body);
 
-    if (!email || !code || !newPassword) {
+    if (!result.success) {
       return res.status(400).json({
-        message: "Email, OTP and new password are required",
+        message: "Invalid password reset data",
+        errors: result.error.flatten().fieldErrors,
       });
     }
 
-    if (newPassword.length < 8) {
-      return res.status(400).json({
-        message: "Password must be at least 8 characters",
-      });
-    }
+    const { email, code, newPassword } = result.data;
 
     const publicDb = db.orm.public;
 
@@ -41,10 +39,11 @@ router.post("/reset-password", async (req, res) => {
     }).all();
 
     const latestOtp = otps
-      .filter((otp: any) => !otp.consumedAt)
+      .filter((otp) => !otp.consumedAt)
       .sort(
-        (a: any, b: any) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) =>
+          new Date(String(b.createdAt)).getTime() -
+          new Date(String(a.createdAt)).getTime(),
       )[0];
 
     if (!latestOtp) {
@@ -53,17 +52,48 @@ router.post("/reset-password", async (req, res) => {
       });
     }
 
-    if (new Date(String(latestOtp.expiresAt)).getTime() < Date.now()) {
+    if (new Date(String(latestOtp.expiresAt)).getTime() <= Date.now()) {
+      await publicDb.Otp.where({ id: latestOtp.id }).update({
+        consumedAt: new Date(),
+      });
+
       return res.status(400).json({
         message: "OTP has expired",
+      });
+    }
+    if (Number(latestOtp.attempts) >= 5) {
+      await publicDb.Otp.where({ id: latestOtp.id }).update({
+        consumedAt: new Date(),
+      });
+
+      return res.status(400).json({
+        message: "Too many invalid OTP attempts",
+      });
+    }
+
+    if (Number(latestOtp.attempts) >= 5) {
+      await publicDb.Otp.where({ id: latestOtp.id }).update({
+        consumedAt: new Date(),
+      });
+
+      return res.status(400).json({
+        message: "Too many invalid OTP attempts",
       });
     }
 
     const valid = await verifyOtp(String(code), String(latestOtp.codeHash));
 
     if (!valid) {
+      const newAttempts = Number(latestOtp.attempts) + 1;
+
+      await publicDb.Otp.where({ id: latestOtp.id }).update({
+        attempts: newAttempts,
+        ...(newAttempts >= 5 ? { consumedAt: new Date() } : {}),
+      });
+
       return res.status(400).json({
-        message: "Invalid OTP",
+        message:
+          newAttempts >= 5 ? "Too many invalid OTP attempts" : "Invalid OTP",
       });
     }
 

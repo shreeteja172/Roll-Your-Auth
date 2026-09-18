@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../../prisma/db";
 import { hashSessionToken } from "../../auth/session";
+import { sessionCookieOptions } from "../../auth/cookie";
 
 const router: Router = Router();
 
@@ -14,12 +15,7 @@ router.post("/logout", async (req, res) => {
       await db.orm.public!.Session!.where({ tokenHash }).delete();
     }
 
-    res.clearCookie("session", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    res.clearCookie("session", sessionCookieOptions);
 
     return res.status(200).json({
       message: "Logout successful",

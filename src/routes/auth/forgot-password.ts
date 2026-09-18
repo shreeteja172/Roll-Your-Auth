@@ -2,18 +2,22 @@ import { Router } from "express";
 import { db } from "../../prisma/db";
 import { generateOtp, hashOtp } from "../../utils/otp";
 import { sendPasswordResetEmail } from "../../email/sendVerificationEmail";
+import { forgotPasswordSchema } from "../../validation/auth";
 
 const router: Router = Router();
 
 router.post("/forgot-password", async (req, res) => {
   try {
-    const { email } = req.body;
+    const result = forgotPasswordSchema.safeParse(req.body);
 
-    if (!email) {
+    if (!result.success) {
       return res.status(400).json({
-        message: "Email is required",
+        message: "Invalid email",
+        errors: result.error.flatten().fieldErrors,
       });
     }
+
+    const { email } = result.data;
 
     const publicDb = db.orm.public;
 
@@ -27,6 +31,31 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(200).json({
         message: "If an account exists, a password reset OTP has been sent",
       });
+    }
+
+    const existingOtps = await publicDb.Otp.where({
+      userId: user.id,
+      purpose: "PASSWORD_RESET",
+    }).all();
+
+    const latestOtp = existingOtps
+      .filter((otp) => !otp.consumedAt)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt as string | number | Date).getTime() -
+          new Date(a.createdAt as string | number | Date).getTime(),
+      )[0];
+
+    if (latestOtp) {
+      const createdAt = new Date(latestOtp.createdAt as string | number | Date);
+
+      const secondsSinceCreation = (Date.now() - createdAt.getTime()) / 1000;
+
+      if (secondsSinceCreation < 60) {
+        return res.status(200).json({
+          message: "If an account exists, a password reset OTP has been sent",
+        });
+      }
     }
 
     const otp = generateOtp();

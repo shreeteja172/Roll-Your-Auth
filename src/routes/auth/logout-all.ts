@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../../prisma/db";
 import { requireAuth } from "../../auth/requireAuth";
+import { sessionCookieOptions } from "../../auth/cookie";
 
 const router: Router = Router();
 // console.log("LOGOUT-ALL ROUTER LOADED");
@@ -18,12 +19,7 @@ router.post("/logout-all", requireAuth, async (req, res) => {
 
     await db.orm.public!.Session!.where({ userId }).delete();
 
-    res.clearCookie("session", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    res.clearCookie("session", sessionCookieOptions);
 
     return res.status(200).json({
       message: "Logged out from all devices",
@@ -36,6 +32,5 @@ router.post("/logout-all", requireAuth, async (req, res) => {
     });
   }
 });
-
 
 export default router;

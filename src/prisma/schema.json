@@ -123,6 +123,13 @@
           },
           "Otp": {
             "fields": {
+              "attempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "codeHash": {
                 "nullable": false,
                 "type": {
@@ -198,6 +205,9 @@
             },
             "storage": {
               "fields": {
+                "attempts": {
+                  "column": "attempts"
+                },
                 "codeHash": {
                   "column": "codeHash"
                 },
@@ -540,6 +550,15 @@
                 }
               ],
               "columns": {
+                "attempts": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
                 "codeHash": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -806,7 +825,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "834e06936ee5c6455c2ae987eb67f516b74c2d1a405cd0e00ca3907a60282ed4"
+    "storageHash": "eb63c822f74c99458c81485b5ea7ae08906e0c8118f3793853ce4fcaeb433ef3"
   },
   "execution": {
     "executionHash": "39ea6408a853337f92d79536563854cf358dc40da1e05b683cda7f821e0e681d",

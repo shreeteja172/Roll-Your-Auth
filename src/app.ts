@@ -15,6 +15,7 @@ import verifyEmailRouter from "./routes/auth/verify-email";
 import resendVerificationRouter from "./routes/auth/resend-verification";
 import forgotPasswordRouter from "./routes/auth/forgot-password";
 import resetPasswordRouter from "./routes/auth/reset-password";
+import { cleanupOtps } from "./cleanup/otpCleanup";
 
 const app = express();
 
@@ -40,8 +41,24 @@ app.listen(3000, async () => {
   } catch (error) {
     console.error("Initial session cleanup failed:", error);
   }
-});
 
+  try {
+    await cleanupOtps();
+  } catch (error) {
+    console.error("Initial OTP cleanup failed:", error);
+  }
+});
+setInterval(
+  async () => {
+    try {
+      await cleanupOtps();
+      console.log("OTP cleanup completed");
+    } catch (error) {
+      console.error("OTP cleanup failed:", error);
+    }
+  },
+  60 * 60 * 1000,
+);
 setInterval(
   async () => {
     try {

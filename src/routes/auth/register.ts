@@ -3,18 +3,22 @@ import { db } from "../../prisma/db";
 import { hashPassword } from "../../auth/password";
 import { generateOtp, hashOtp } from "../../utils/otp";
 import { sendVerificationEmail } from "../../email/sendVerificationEmail";
+import { registerSchema } from "../../validation/auth";
 
 const router: Router = Router();
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const result = registerSchema.safeParse(req.body);
 
-    if (!email || !password) {
+    if (!result.success) {
       return res.status(400).json({
-        message: "Email and password are required",
+        message: "Invalid registration data",
+        errors: result.error.flatten().fieldErrors,
       });
     }
+
+    const { email, password } = result.data;
 
     const publicDb = db.orm.public;
 
@@ -35,11 +39,29 @@ router.post("/register", async (req, res) => {
     // console.log("REGISTER PASSWORD:", password);
     // console.log("GENERATED HASH:", passwordHash);
 
-    const user = await publicDb.User.create({
-      email,
-      passwordHash,
-    });
+    let user;
 
+    try {
+      user = await publicDb.User.create({
+        email,
+        passwordHash,
+      });
+    } catch (error) {
+      console.error("User creation error:", error);
+
+      if (
+        error instanceof Error &&
+        error.message.toLowerCase().includes("unique")
+      ) {
+        return res.status(409).json({
+          message: "User already exists",
+        });
+      }
+
+      return res.status(500).json({
+        message: "Internal server error",
+      });
+    }
     const otp = generateOtp();
     const codeHash = await hashOtp(otp);
 
@@ -56,7 +78,6 @@ router.post("/register", async (req, res) => {
 
     await sendVerificationEmail(email, otp);
 
-    
     return res.status(201).json({
       message: "User registered successfully",
       user: {

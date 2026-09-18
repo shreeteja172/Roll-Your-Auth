@@ -61,7 +61,13 @@ router.post("/resend-verification", async (req, res) => {
         });
       }
     }
-
+    for (const otp of existingOtps) {
+      if (!otp.consumedAt) {
+        await publicDb.Otp.where({ id: otp.id }).update({
+          consumedAt: new Date(),
+        });
+      }
+    }
     const otp = generateOtp();
     const codeHash = await hashOtp(otp);
 

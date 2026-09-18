@@ -7,18 +7,23 @@ import {
   getSessionExpiry,
 } from "../../auth/session";
 import { requireAuth } from "../../auth/requireAuth";
+import { loginSchema } from "../../validation/auth";
+import { sessionCookieOptions } from "../../auth/cookie";
 
 const router: Router = Router();
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const result = loginSchema.safeParse(req.body);
 
-    if (!email || !password) {
+    if (!result.success) {
       return res.status(400).json({
-        message: "Email and password are required",
+        message: "Invalid login data",
+        errors: result.error.flatten().fieldErrors,
       });
     }
+
+    const { email, password } = result.data;
 
     const publicDb = db.orm.public;
     if (!publicDb?.User || !publicDb?.Session) {
@@ -37,6 +42,12 @@ router.post("/login", async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({
         message: "Invalid email or password",
+      });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in",
       });
     }
 
@@ -61,11 +72,8 @@ router.post("/login", async (req, res) => {
     });
 
     res.cookie("session", sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      ...sessionCookieOptions,
       expires: new Date(expiresAt),
-      path: "/",
     });
 
     return res.status(200).json({
